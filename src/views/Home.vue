@@ -18,35 +18,32 @@
     </div>
     
     <div v-else class="carousel-container">
-      <Transition name="fade-slide" mode="out-in">
-        <div 
-          :key="currentIndex"
-          class="carousel-slide"
-          :class="{ 'is-rolling': isMarquee }"
-        >
+      <div class="carousel-slide current-slide" :style="getSlideStyle(0)">
+        <Transition name="fade">
           <img 
-            :src="currentMeal.image" 
-            :alt="currentMeal.name" 
+            :key="currentIndex"
+            :src="meals[currentIndex]?.image" 
+            :alt="meals[currentIndex]?.name" 
             class="carousel-image"
             @error="handleImageError"
           />
-          <h2 class="carousel-name">{{ currentMeal.name }}</h2>
-          <div class="carousel-nutrition">
-            <div class="nutrition-item">
-              <div class="nutrition-value">{{ currentMeal.protein }}g</div>
-              <div class="nutrition-label">蛋白质</div>
-            </div>
-            <div class="nutrition-item">
-              <div class="nutrition-value">{{ currentMeal.calories }}kcal</div>
-              <div class="nutrition-label">热量</div>
-            </div>
-            <div class="nutrition-item">
-              <div class="nutrition-value">{{ currentMeal.carbs }}g</div>
-              <div class="nutrition-label">碳水</div>
-            </div>
+        </Transition>
+        <h2 class="carousel-name">{{ meals[currentIndex]?.name }}</h2>
+        <div class="carousel-nutrition">
+          <div class="nutrition-item">
+            <div class="nutrition-value">{{ meals[currentIndex]?.protein }}g</div>
+            <div class="nutrition-label">蛋白质</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-value">{{ meals[currentIndex]?.calories }}kcal</div>
+            <div class="nutrition-label">热量</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-value">{{ meals[currentIndex]?.carbs }}g</div>
+            <div class="nutrition-label">碳水</div>
           </div>
         </div>
-      </Transition>
+      </div>
     </div>
     
     <div class="start-btn-container" v-if="meals.length > 0">
@@ -100,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMeals, addCheckin, getTodayDateKey } from '../store'
 
@@ -113,12 +110,16 @@ const selectedMeal = ref(null)
 const autoPlayTimer = ref(null)
 const marqueeInterval = ref(null)
 
-const currentMeal = computed(() => {
-  return meals.value[currentIndex.value] || meals.value[0] || {}
-})
-
 const handleImageError = (e) => {
   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTBlMGUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iNDgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuMzVlbSIgZmlsbD0iIzk5OTkiPu+8jTwvdGV4dD48L3N2Zz4='
+}
+
+const getSlideStyle = (index) => {
+  return {
+    opacity: 1,
+    transform: 'translateX(0)',
+    transition: isMarquee.value ? 'none' : 'all 0.3s ease'
+  }
 }
 
 const loadMeals = () => {
@@ -205,39 +206,25 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.15s ease-out;
-}
-
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: scale(0.95) translateY(10px);
-}
-
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: scale(0.95) translateY(-10px);
-}
-
 .carousel-slide {
-  transition: transform 0.3s ease;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.carousel-slide.is-rolling {
-  animation: pulse 0.15s ease-in-out;
+.current-slide {
+  transition: all 0.3s ease;
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.98);
-  }
-  100% {
-    transform: scale(1);
-  }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .result-card {

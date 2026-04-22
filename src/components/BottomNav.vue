@@ -5,10 +5,10 @@
       :key="item.path"
       :to="item.path" 
       class="nav-item"
-      :class="{ active: isActive(item.path) }"
+      :class="{ active: isActiveRoute(item.path) }"
     >
       <span class="nav-icon">
-        <component :is="item.icon" :class="{ 'icon-active': isActive(item.path) }" />
+        <component :is="item.icon" :class="{ 'icon-active': isActiveRoute(item.path) }" />
       </span>
       <span class="nav-label">{{ item.label }}</span>
     </router-link>
@@ -27,10 +27,11 @@ const IconHome = () => h('svg', { width: '24', height: '24', viewBox: '0 0 24 24
 ])
 
 const IconMenu = () => h('svg', { width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
-  h('path', { d: 'M12 2H2v20l4-4h16V2H12z' }),
-  h('path', { d: 'M22 2H2v20l4-4h16V2z' }),
-  h('path', { d: 'M9 10h6' }),
-  h('path', { d: 'M9 14h6' })
+  h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
+  h('polyline', { points: '14 2 14 8 20 8' }),
+  h('line', { x1: '16', y1: '13', x2: '8', y2: '13' }),
+  h('line', { x1: '16', y1: '17', x2: '8', y2: '17' }),
+  h('polyline', { points: '10 9 9 9 8 9' })
 ])
 
 const IconCheck = () => h('svg', { width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
@@ -50,7 +51,7 @@ const navItems = [
   { path: '/profile', label: '我的', icon: IconUser }
 ]
 
-const isActive = (path) => {
+const isActiveRoute = (path) => {
   return computed(() => route.path === path)
 }
 </script>
@@ -68,5 +69,10 @@ const isActive = (path) => {
 
 .icon-active {
   stroke: var(--primary-color);
+}
+
+.nav-item.active .nav-label {
+  color: var(--primary-color);
+  font-weight: 600;
 }
 </style>
