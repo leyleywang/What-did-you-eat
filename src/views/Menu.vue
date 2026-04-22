@@ -44,12 +44,11 @@
     </div>
     
     <div class="add-btn-container">
-      <button class="add-btn" @click="showAddModal = true">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="add-btn" @click="showAddModal = true" title="添加餐单">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        <span>添加餐单</span>
       </button>
     </div>
     
@@ -297,32 +296,26 @@ onMounted(() => {
   left: 50%;
   transform: translateX(-50%);
   z-index: 90;
-  width: 100%;
-  max-width: 430px;
-  padding: 0 16px;
 }
 
 .add-btn {
-  width: 100%;
-  padding: 14px 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
   transition: all 0.2s ease;
 }
 
 .add-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
 }
 
 .delete-btn {
