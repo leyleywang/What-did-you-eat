@@ -18,16 +18,13 @@
     </div>
     
     <div v-else class="carousel-container">
-      <div class="carousel-slide current-slide" :style="getSlideStyle(0)">
-        <Transition name="fade">
-          <img 
-            :key="currentIndex"
-            :src="meals[currentIndex]?.image" 
-            :alt="meals[currentIndex]?.name" 
-            class="carousel-image"
-            @error="handleImageError"
-          />
-        </Transition>
+      <div class="carousel-slide" :class="{ 'marquee-mode': isMarquee }">
+        <img 
+          :src="meals[currentIndex]?.image" 
+          :alt="meals[currentIndex]?.name" 
+          class="carousel-image"
+          @error="handleImageError"
+        />
         <h2 class="carousel-name">{{ meals[currentIndex]?.name }}</h2>
         <div class="carousel-nutrition">
           <div class="nutrition-item">
@@ -114,13 +111,7 @@ const handleImageError = (e) => {
   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTBlMGUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iNDgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuMzVlbSIgZmlsbD0iIzk5OTkiPu+8jTwvdGV4dD48L3N2Zz4='
 }
 
-const getSlideStyle = (index) => {
-  return {
-    opacity: 1,
-    transform: 'translateX(0)',
-    transition: isMarquee.value ? 'none' : 'all 0.3s ease'
-  }
-}
+
 
 const loadMeals = () => {
   meals.value = getMeals()
@@ -206,27 +197,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.carousel-slide {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.current-slide {
-  transition: all 0.3s ease;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
 .result-card {
   position: relative;
 }
