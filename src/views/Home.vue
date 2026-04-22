@@ -5,44 +5,48 @@
     </header>
     
     <div v-if="meals.length === 0" class="no-meals-message">
-      <div class="no-meals-icon">🍽️</div>
+      <div class="no-meals-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+          <line x1="6" y1="1" x2="6" y2="4"></line>
+          <line x1="10" y1="1" x2="10" y2="4"></line>
+          <line x1="14" y1="1" x2="14" y2="4"></line>
+        </svg>
+      </div>
       <p>暂无餐单，请先添加餐单</p>
     </div>
     
     <div v-else class="carousel-container">
-      <div 
-        class="carousel-track"
-        :class="{ marquee: isMarquee }"
-        :style="{ transform: `translateX(-${currentOffset}px)` }"
-      >
+      <Transition name="fade-slide" mode="out-in">
         <div 
-          v-for="(meal, index) in displayMeals" 
-          :key="`${meal.id}-${index}`" 
+          :key="currentIndex"
           class="carousel-slide"
+          :class="{ 'is-rolling': isMarquee }"
         >
           <img 
-            :src="meal.image" 
-            :alt="meal.name" 
+            :src="currentMeal.image" 
+            :alt="currentMeal.name" 
             class="carousel-image"
             @error="handleImageError"
           />
-          <h2 class="carousel-name">{{ meal.name }}</h2>
+          <h2 class="carousel-name">{{ currentMeal.name }}</h2>
           <div class="carousel-nutrition">
             <div class="nutrition-item">
-              <div class="nutrition-value">{{ meal.protein }}g</div>
+              <div class="nutrition-value">{{ currentMeal.protein }}g</div>
               <div class="nutrition-label">蛋白质</div>
             </div>
             <div class="nutrition-item">
-              <div class="nutrition-value">{{ meal.calories }}kcal</div>
+              <div class="nutrition-value">{{ currentMeal.calories }}kcal</div>
               <div class="nutrition-label">热量</div>
             </div>
             <div class="nutrition-item">
-              <div class="nutrition-value">{{ meal.carbs }}g</div>
+              <div class="nutrition-value">{{ currentMeal.carbs }}g</div>
               <div class="nutrition-label">碳水</div>
             </div>
           </div>
         </div>
-      </div>
+      </Transition>
     </div>
     
     <div class="start-btn-container" v-if="meals.length > 0">
@@ -57,6 +61,12 @@
     
     <div v-if="showResult" class="result-overlay" @click.self="closeResult">
       <div class="result-card">
+        <button class="result-close" @click="closeResult">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
         <h3 class="result-title">🎉 今天就吃这个！</h3>
         <img 
           :src="selectedMeal.image" 
@@ -97,19 +107,14 @@ import { getMeals, addCheckin, getTodayDateKey } from '../store'
 const router = useRouter()
 const meals = ref([])
 const currentIndex = ref(0)
-const currentOffset = ref(0)
 const isMarquee = ref(false)
 const showResult = ref(false)
 const selectedMeal = ref(null)
 const autoPlayTimer = ref(null)
-const marqueeTimer = ref(null)
-const slideWidth = ref(0)
+const marqueeInterval = ref(null)
 
-const displayMeals = computed(() => {
-  if (isMarquee.value) {
-    return [...meals.value, ...meals.value, ...meals.value]
-  }
-  return meals.value
+const currentMeal = computed(() => {
+  return meals.value[currentIndex.value] || meals.value[0] || {}
 })
 
 const handleImageError = (e) => {
@@ -125,45 +130,20 @@ const startAutoPlay = () => {
   
   autoPlayTimer.value = setInterval(() => {
     if (isMarquee.value) return
-    
     currentIndex.value = (currentIndex.value + 1) % meals.value.length
-    updateSlidePosition()
   }, 3000)
-}
-
-const updateSlidePosition = () => {
-  const container = document.querySelector('.carousel-container')
-  if (container) {
-    slideWidth.value = container.offsetWidth
-  }
-  currentOffset.value = currentIndex.value * slideWidth.value
 }
 
 const startRandom = () => {
   if (isMarquee.value || meals.value.length === 0) return
   
   isMarquee.value = true
-  currentOffset.value = 0
   
-  let speed = 20
-  let direction = 1
+  let speed = 80
   
-  const runMarquee = () => {
-    marqueeTimer.value = requestAnimationFrame(() => {
-      const maxOffset = meals.value.length * slideWidth.value
-      currentOffset.value += speed * direction
-      
-      if (currentOffset.value >= maxOffset * 2) {
-        currentOffset.value = 0
-      }
-      
-      if (isMarquee.value) {
-        runMarquee()
-      }
-    })
-  }
-  
-  runMarquee()
+  marqueeInterval.value = setInterval(() => {
+    currentIndex.value = (currentIndex.value + 1) % meals.value.length
+  }, speed)
   
   setTimeout(() => {
     stopMarquee()
@@ -172,14 +152,14 @@ const startRandom = () => {
 
 const stopMarquee = () => {
   isMarquee.value = false
-  if (marqueeTimer.value) {
-    cancelAnimationFrame(marqueeTimer.value)
+  if (marqueeInterval.value) {
+    clearInterval(marqueeInterval.value)
+    marqueeInterval.value = null
   }
   
   const randomIndex = Math.floor(Math.random() * meals.value.length)
   selectedMeal.value = meals.value[randomIndex]
   currentIndex.value = randomIndex
-  updateSlidePosition()
   
   showResult.value = true
 }
@@ -211,19 +191,75 @@ const checkinMeal = () => {
 
 onMounted(() => {
   loadMeals()
-  updateSlidePosition()
   startAutoPlay()
-  
-  window.addEventListener('resize', updateSlidePosition)
 })
 
 onUnmounted(() => {
   if (autoPlayTimer.value) {
     clearInterval(autoPlayTimer.value)
   }
-  if (marqueeTimer.value) {
-    cancelAnimationFrame(marqueeTimer.value)
+  if (marqueeInterval.value) {
+    clearInterval(marqueeInterval.value)
   }
-  window.removeEventListener('resize', updateSlidePosition)
 })
 </script>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.15s ease-out;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
+}
+
+.carousel-slide {
+  transition: transform 0.3s ease;
+}
+
+.carousel-slide.is-rolling {
+  animation: pulse 0.15s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.result-card {
+  position: relative;
+}
+
+.result-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.result-close:hover {
+  color: var(--text-primary);
+  background-color: var(--border-color);
+}
+</style>
